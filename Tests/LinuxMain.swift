@@ -1,7 +1,9 @@
+#if !canImport(ObjectiveC)
 import XCTest
 
-import swift_package_zlibTests
+import zlibTests
 
 var tests = [XCTestCaseEntry]()
-tests += swift_package_zlibTests.allTests()
+tests += zlibTests.allTests()
 XCTMain(tests)
+#endif 

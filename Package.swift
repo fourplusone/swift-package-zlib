@@ -1,28 +1,34 @@
 // swift-tools-version:5.2
-// The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+
+var sources = ["adler32.c", "compress.c", "crc32.c", "deflate.c", "gzclose.c", "gzlib.c", "gzread.c", "gzwrite.c", "inflate.c", "infback.c", "inftrees.c", "inffast.c", "trees.c", "uncompr.c", "zutil.c"]
+
+
+let VENDOR_ZLIB : Bool
+
+#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS))
+VENDOR_ZLIB = false
+#else
+VENDOR_ZLIB = true
+#endif
 
 let package = Package(
     name: "swift-package-zlib",
     products: [
-        // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
-            name: "swift-package-zlib",
-            targets: ["swift-package-zlib"]),
-    ],
-    dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
+            name: "Z",
+            targets: ["Z"]),
     ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages which this package depends on.
-        .target(
-            name: "swift-package-zlib",
-            dependencies: []),
-        .testTarget(
-            name: "swift-package-zlibTests",
-            dependencies: ["swift-package-zlib"]),
-    ]
+        .target(name: "Z",
+                dependencies: VENDOR_ZLIB ? ["vendoredZlib"] : [],
+                swiftSettings: VENDOR_ZLIB ? [.define("USE_VENDORED_ZLIB")] : nil),
+        .testTarget(name: "zlibTests", dependencies:["Z"])
+        ] + (VENDOR_ZLIB ? [
+            .target(name:"vendoredZlib",
+                    path: "Sources/zlib",
+                    sources:sources.map { "repository/" + $0 },
+                    publicHeadersPath: "include",
+                    cSettings:[.define("STDC"), .define("Z_HAVE_UNISTD_H"), .define("HAVE_STDARG_H"), .define("HAVE_HIDDEN")])] : [])
 )
